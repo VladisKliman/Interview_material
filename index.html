@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Read-only Code Challenge Viewer</title>
+  <style>
+    :root{--wm-opacity:0.12;--wm-color:#000;--wm-font:600 18px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    html,body{height:100%;margin:0;background:#fff;font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#111}
+    .container{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+    .frame{position:relative;max-width:1000px;width:100%;box-shadow:0 6px 30px rgba(0,0,0,0.08);border-radius:8px;overflow:hidden;background:#fafafa}
+    .frame img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+    .watermark-layer{pointer-events:none;position:absolute;inset:0;z-index:40;mix-blend-mode:normal}
+    .watermark-tile{position:absolute;white-space:nowrap;opacity:var(--wm-opacity);font:var(--wm-font);color:var(--wm-color);transform:rotate(-20deg);letter-spacing:0.06em}
+    .topbar{position:relative;z-index:60;background:linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));padding:8px 12px;font-size:13px;display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:8px 8px 0 0}
+    .topbar .notice{font-weight:600}
+    .agree-btn{background:#0b5cff;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+    .footer{font-size:13px;padding:12px;color:#222;background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.95));display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .footer .legal{max-width:800px}
+    .blackout{position:absolute;inset:0;background:#000;z-index:120;opacity:0;transition:opacity .12s ease}
+    .blackout.active{opacity:1}
+    @media print{body *{visibility:hidden} .frame, .frame *{visibility:visible}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="frame" id="frame">
+      <div class="topbar" id="topbar">
+        <div class="notice">CONFIDENTIAL — Please read and accept the legal notice before viewing the code</div>
+        <button class="agree-btn" id="agreeBtn">I agree — View challenge</button>
+      </div>
+
+      <!-- Challenge container hidden until agreement -->
+      <div id="challengeContainer" style="display:none; position:relative;">
+        <img id="codeImage" src="DE_medior_interview.png" alt="Code snippet (view-only)"/>
+        <div class="watermark-layer" id="wmLayer" aria-hidden="true"></div>
+        <div class="blackout" id="blackout"></div>
+      </div>
+
+      <div class="footer">
+        <div class="legal">Personal data / proprietary information (PI) is strictly prohibited from being copied, photographed, or shared. Any disclosure is a violation of policy and may lead to disqualification and further action.</div>
+        <div class="meta" id="meta">Session: <span id="sessionId">—</span> • <span id="timestamp">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function qs(name){const u=new URLSearchParams(location.search);return u.get(name)||''}
+    const candidateName = decodeURIComponent(qs('name') || 'Candidate Name');
+    const candidateEmail = decodeURIComponent(qs('email') || 'candidate@example.com');
+    const vendor = decodeURIComponent(qs('vendor') || 'Vendor');
+    const sessionId = decodeURIComponent(qs('session') || Math.random().toString(36).slice(2,10));
+    const ts = decodeURIComponent(qs('ts') || new Date().toISOString());
+
+    const wmLayer = document.getElementById('wmLayer');
+    const sessionSpan = document.getElementById('sessionId');
+    const tsSpan = document.getElementById('timestamp');
+    const agreeBtn = document.getElementById('agreeBtn');
+    const topbar = document.getElementById('topbar');
+    const blackout = document.getElementById('blackout');
+    const challengeContainer = document.getElementById('challengeContainer');
+
+    sessionSpan.textContent = sessionId;
+    tsSpan.textContent = (new Date(ts)).toLocaleString();
+
+    const wmText = `CONFIDENTIAL — ${Data_engineer} | ${aakashr@altimetrik.com} | ${Altimetrik} | session:${sessionId} | ${new Date(ts).toLocaleString()}`;
+
+    function createWatermarkTiles() {
+      wmLayer.innerHTML = '';
+      const rect = challengeContainer.getBoundingClientRect();
+      const tileW = 360;
+      const tileH = 80;
+      const cols = Math.ceil(rect.width / tileW) + 1;
+      const rows = Math.ceil(rect.height / tileH) + 1;
+    
+      for (let r = -1; r < rows; r++) {
+        for (let c = -1; c < cols; c++) {
+          const el = document.createElement('div');
+          el.className = 'watermark-tile';
+          el.textContent = wmText;
+          el.style.left = (c * tileW * 1.1) + 'px';
+          el.style.top = (r * tileH * 1.2) + 'px';
+          el.style.transform = 'rotate(-10deg)';
+          wmLayer.appendChild(el);
+        }
+      }
+    }
+
+    let resizeTimer = null; 
+    window.addEventListener('resize', ()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(createWatermarkTiles,120)});
+
+    document.addEventListener('contextmenu', e=>{e.preventDefault();return false});
+    document.addEventListener('copy', e=>{e.preventDefault();return false});
+    document.addEventListener('keydown', e=>{
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p')){e.preventDefault();return false}
+      if ((e.ctrlKey || e.metaKey) && (e.shiftKey) && (e.key.toLowerCase() === 'i')){e.preventDefault();return false}
+      if (e.key === 'PrintScreen' || e.keyCode === 44){triggerBlackout(900)}
+    });
+    window.addEventListener('blur', ()=>{triggerBlackout(1200)});
+    document.addEventListener('visibilitychange', ()=>{ if (document.hidden) triggerBlackout(900) });
+
+    let blackoutTimer = null;
+    function triggerBlackout(ms){
+      blackout.classList.add('active');
+      clearTimeout(blackoutTimer);
+      blackoutTimer = setTimeout(()=>{blackout.classList.remove('active')}, ms || 700);
+    }
+
+    agreeBtn.addEventListener('click', ()=>{
+      agreeBtn.disabled = true;
+      agreeBtn.textContent = 'Viewing — session logged';
+      challengeContainer.style.display = 'block';
+      createWatermarkTiles();
+      topbar.style.opacity = '0.95';
+    });
+  </script>
+</body>
+</html>
