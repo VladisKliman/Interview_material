@@ -46,9 +46,9 @@
 
   <script>
     function qs(name){const u=new URLSearchParams(location.search);return u.get(name)||''}
-    const candidateName = decodeURIComponent(qs('name') || 'Candidate Name');
-    const candidateEmail = decodeURIComponent(qs('email') || 'candidate@example.com');
-    const vendor = decodeURIComponent(qs('vendor') || 'Vendor');
+    const candidateName = decodeURIComponent(qs('name') || 'Data Engineer');
+    const candidateEmail = decodeURIComponent(qs('email') || 'aakashr@altimetrik.com');
+    const vendor = decodeURIComponent(qs('vendor') || 'Altimetrik');
     const sessionId = decodeURIComponent(qs('session') || Math.random().toString(36).slice(2,10));
     const ts = decodeURIComponent(qs('ts') || new Date().toISOString());
 
@@ -63,7 +63,7 @@
     sessionSpan.textContent = sessionId;
     tsSpan.textContent = (new Date(ts)).toLocaleString();
 
-    const wmText = `CONFIDENTIAL — ${Data_engineer} | ${aakashr@altimetrik.com} | ${Altimetrik} | session:${sessionId} | ${new Date(ts).toLocaleString()}`;
+    const wmText = `CONFIDENTIAL — `CONFIDENTIAL — ${candidateName} | ${candidateEmail} | ${vendor} | session:${sessionId} | ${new Date(ts).toLocaleString()}`;
 
     function createWatermarkTiles() {
       wmLayer.innerHTML = '';
