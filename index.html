@@ -12,10 +12,11 @@
     .frame img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
     .watermark-layer{pointer-events:none;position:absolute;inset:0;z-index:40;mix-blend-mode:normal}
     .watermark-tile{position:absolute;white-space:nowrap;opacity:var(--wm-opacity);font:var(--wm-font);color:var(--wm-color);transform:rotate(-20deg);letter-spacing:0.06em}
-    .topbar{position:relative;z-index:60;background:linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));padding:8px 12px;font-size:13px;display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:8px 8px 0 0}
+    .topbar{position:relative;z-index:60;background:linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));padding:8px 12px;font-size:13px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;border-radius:8px 8px 0 0}
     .topbar .notice{font-weight:600}
     .agree-btn{background:#0b5cff;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
-    .footer{font-size:13px;padding:12px;color:#222;background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.95));display:flex;gap:12px;align-items:center;justify-content:space-between}
+    #screenshotAlert{color:red;font-weight:bold;display:none;}
+    .footer{font-size:13px;padding:12px;color:#222;background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.95));display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
     .footer .legal{max-width:800px}
     .blackout{position:absolute;inset:0;background:#000;z-index:120;opacity:0;transition:opacity .12s ease}
     .blackout.active{opacity:1}
@@ -27,6 +28,7 @@
     <div class="frame" id="frame">
       <div class="topbar" id="topbar">
         <div class="notice">CONFIDENTIAL — Please read and accept the legal notice before viewing the code</div>
+        <div id="screenshotAlert">Screenshot attempt detected!</div>
         <button class="agree-btn" id="agreeBtn">I agree — View challenge</button>
       </div>
 
@@ -47,8 +49,8 @@
   <script>
     function qs(name){const u=new URLSearchParams(location.search);return u.get(name)||''}
     const candidateName = decodeURIComponent(qs('name') || 'Data Engineer');
-    const candidateEmail = decodeURIComponent(qs('email') || 'aakashr@altimetrik.com');
-    const vendor = decodeURIComponent(qs('vendor') || 'Altimetrik');
+    const candidateEmail = decodeURIComponent(qs('email') || 'candidate@altimetrik.com');
+    const vendor = decodeURIComponent(qs('vendor') || 'Takeda Pharmaceutical Co Ltd');
     const sessionId = decodeURIComponent(qs('session') || Math.random().toString(36).slice(2,10));
     const ts = decodeURIComponent(qs('ts') || new Date().toISOString());
 
@@ -59,6 +61,7 @@
     const topbar = document.getElementById('topbar');
     const blackout = document.getElementById('blackout');
     const challengeContainer = document.getElementById('challengeContainer');
+    const screenshotAlert = document.getElementById('screenshotAlert');
 
     sessionSpan.textContent = sessionId;
     tsSpan.textContent = (new Date(ts)).toLocaleString();
@@ -86,6 +89,20 @@
       }
     }
 
+    function resetChallengeView(reason){
+      challengeContainer.style.display = 'none';
+      agreeBtn.disabled = false;
+      agreeBtn.textContent = 'I agree — View challenge';
+      topbar.style.opacity = '1';
+
+      // show screenshot alert
+      screenshotAlert.style.display = 'block';
+      console.log('Challenge view reset due to:', reason);
+
+      // hide after 3 seconds
+      setTimeout(()=>{ screenshotAlert.style.display = 'none'; }, 3000);
+    }
+
     let resizeTimer = null; 
     window.addEventListener('resize', ()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(createWatermarkTiles,120)});
 
@@ -94,17 +111,10 @@
     document.addEventListener('keydown', e=>{
       if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p')){e.preventDefault();return false}
       if ((e.ctrlKey || e.metaKey) && (e.shiftKey) && (e.key.toLowerCase() === 'i')){e.preventDefault();return false}
-      if (e.key === 'PrintScreen' || e.keyCode === 44){triggerBlackout(900)}
+      if (e.key === 'PrintScreen' || e.keyCode === 44){resetChallengeView('PrintScreen pressed')}
     });
-    window.addEventListener('blur', ()=>{triggerBlackout(1200)});
-    document.addEventListener('visibilitychange', ()=>{ if (document.hidden) triggerBlackout(900) });
-
-    let blackoutTimer = null;
-    function triggerBlackout(ms){
-      blackout.classList.add('active');
-      clearTimeout(blackoutTimer);
-      blackoutTimer = setTimeout(()=>{blackout.classList.remove('active')}, ms || 700);
-    }
+    window.addEventListener('blur', ()=>{resetChallengeView('Window lost focus')});
+    document.addEventListener('visibilitychange', ()=>{ if (document.hidden) resetChallengeView('Tab hidden') });
 
     agreeBtn.addEventListener('click', ()=>{
       agreeBtn.disabled = true;
