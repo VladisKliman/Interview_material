@@ -63,7 +63,7 @@
     sessionSpan.textContent = sessionId;
     tsSpan.textContent = (new Date(ts)).toLocaleString();
 
-    const wmText = `CONFIDENTIAL — `CONFIDENTIAL — ${candidateName} | ${candidateEmail} | ${vendor} | session:${sessionId} | ${new Date(ts).toLocaleString()}`;
+    const wmText = `CONFIDENTIAL — ${candidateName} | ${candidateEmail} | ${vendor} | session:${sessionId} | ${new Date(ts).toLocaleString()}`;
 
     function createWatermarkTiles() {
       wmLayer.innerHTML = '';
