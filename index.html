@@ -34,13 +34,16 @@
 
       <!-- Challenge container hidden until agreement -->
       <div id="challengeContainer" style="display:none; position:relative;">
-        <img id="codeImage" src="DE_medior_interview.png" alt="Code snippet (view-only)"/>
+        <img id="codeImage" alt="Code snippet (view-only)"/>
         <div class="watermark-layer" id="wmLayer" aria-hidden="true"></div>
         <div class="blackout" id="blackout"></div>
       </div>
 
       <div class="footer">
-        <div class="legal">Personal data / proprietary information (PI) is strictly prohibited from being copied, photographed, or shared. Any disclosure is a violation of policy and may lead to disqualification and further action.</div>
+        <div class="legal">
+          Personal data / proprietary information (PI) is strictly prohibited from being copied, photographed, or shared.
+          Any disclosure or attempt to bypass security restrictions will result in immediate session termination and may lead to disqualification or further action.
+        </div>
         <div class="meta" id="meta">Session: <span id="sessionId">—</span> • <span id="timestamp">—</span></div>
       </div>
     </div>
@@ -48,12 +51,16 @@
 
   <script>
     function qs(name){const u=new URLSearchParams(location.search);return u.get(name)||''}
+
+    // Extract URL parameters
     const candidateName = decodeURIComponent(qs('name') || 'Data Engineer');
     const candidateEmail = decodeURIComponent(qs('email') || 'candidate@altimetrik.com');
     const vendor = decodeURIComponent(qs('vendor') || 'Takeda Pharmaceutical Co Ltd');
     const sessionId = decodeURIComponent(qs('session') || Math.random().toString(36).slice(2,10));
     const ts = decodeURIComponent(qs('ts') || new Date().toISOString());
+    const imgFile = decodeURIComponent(qs('img') || 'DE_medior_interview.png'); // 👈 NEW
 
+    // Elements
     const wmLayer = document.getElementById('wmLayer');
     const sessionSpan = document.getElementById('sessionId');
     const tsSpan = document.getElementById('timestamp');
@@ -62,9 +69,12 @@
     const blackout = document.getElementById('blackout');
     const challengeContainer = document.getElementById('challengeContainer');
     const screenshotAlert = document.getElementById('screenshotAlert');
+    const codeImage = document.getElementById('codeImage');
 
+    // Initialize display
     sessionSpan.textContent = sessionId;
     tsSpan.textContent = (new Date(ts)).toLocaleString();
+    codeImage.src = imgFile; // 👈 assign image dynamically
 
     const wmText = `CONFIDENTIAL — ${candidateName} | ${candidateEmail} | ${vendor} | session:${sessionId} | ${new Date(ts).toLocaleString()}`;
 
@@ -94,20 +104,18 @@
       agreeBtn.disabled = false;
       agreeBtn.textContent = 'I agree — View challenge';
       topbar.style.opacity = '1';
-
-      // show screenshot alert
       screenshotAlert.style.display = 'block';
+      screenshotAlert.textContent = 'Security event detected: ' + reason;
       console.log('Challenge view reset due to:', reason);
-
-      // hide after 3 seconds
-      setTimeout(()=>{ screenshotAlert.style.display = 'none'; }, 3000);
+      setTimeout(()=>{ screenshotAlert.style.display = 'none'; }, 4000);
     }
 
+    // Event handlers
     let resizeTimer = null; 
     window.addEventListener('resize', ()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(createWatermarkTiles,120)});
 
     document.addEventListener('contextmenu', e=>{e.preventDefault();return false});
-    document.addEventListener('copy', e=>{e.preventDefault();return false});
+    document.addEventListener('copy', e=>{e.preventDefault();resetChallengeView('Copy attempt');return false});
     document.addEventListener('keydown', e=>{
       if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p')){e.preventDefault();return false}
       if ((e.ctrlKey || e.metaKey) && (e.shiftKey) && (e.key.toLowerCase() === 'i')){e.preventDefault();return false}
@@ -116,6 +124,7 @@
     window.addEventListener('blur', ()=>{resetChallengeView('Window lost focus')});
     document.addEventListener('visibilitychange', ()=>{ if (document.hidden) resetChallengeView('Tab hidden') });
 
+    // Agreement logic
     agreeBtn.addEventListener('click', ()=>{
       agreeBtn.disabled = true;
       agreeBtn.textContent = 'Viewing — session logged';
