@@ -54,7 +54,7 @@
     function qs(name){const u=new URLSearchParams(location.search);return u.get(name)||''}
 
     // Extract URL parameters
-    const candidateName = decodeURIComponent(qs('name') || 'Data Engineer');
+    const candidateName = decodeURIComponent(qs('name') || 'Data Engineer ');
     const candidateEmail = decodeURIComponent(qs('email') || 'candidate@company.com');
     const vendor = decodeURIComponent(qs('vendor') || 'Takeda Pharmaceutical Co Ltd');
     const sessionId = decodeURIComponent(qs('session') || Math.random().toString(36).slice(2,10));
