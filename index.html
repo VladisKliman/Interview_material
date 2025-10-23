@@ -54,7 +54,7 @@
 
     // Extract URL parameters
     const candidateName = decodeURIComponent(qs('name') || 'Data Engineer');
-    const candidateEmail = decodeURIComponent(qs('email') || 'candidate@altimetrik.com');
+    const candidateEmail = decodeURIComponent(qs('email') || 'candidate@company.com');
     const vendor = decodeURIComponent(qs('vendor') || 'Takeda Pharmaceutical Co Ltd');
     const sessionId = decodeURIComponent(qs('session') || Math.random().toString(36).slice(2,10));
     const ts = decodeURIComponent(qs('ts') || new Date().toISOString());
